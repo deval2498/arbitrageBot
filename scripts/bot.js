@@ -49,19 +49,21 @@ async function main() {
   const balance = await provider.getBalance(signer.address)
   
   console.log(ethers.utils.formatEther(balance))
-  const gasFee = 428750003001250
+  //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
   if(pUniswap > pSushiswap){
     const _exc1 = exc1
     const _exc2 = exc2
     const gap = pUniswap - pSushiswap
     const minAmount = ethers.utils.formatEther(uniswapAmountsOut[1])
+    const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
     console.log("Gap:",gap)
-    console.log(uniswapAmountsOut,ethers.utils.parseEther(minAmount.toString()))
+    //console.log(uniswapAmountsOut,ethers.utils.parseEther(minAmount.toString()))
     const arbOpp = gap - gasFee
+    console.log(arbOpp,gasFee)
     if(arbOpp > 0){
       console.log("/Deploying Loan: For Arbitrage opportunity", arbOpp)
-      const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
-      await tx.wait()
+      //const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
+      //await tx.wait()
       console.log("Congratulations")
   }
 }
@@ -72,12 +74,20 @@ async function main() {
     const gap = pSushiswap - pUniswap
     console.log("Gap:",gap)
     const minAmount = ethers.utils.formatEther(sushiswapAmountsOut[1])
-    const arbOpp = gap - gasFee
-    console.log(sushiswapAmountsOut,ethers.utils.parseEther(minAmount.toString()))
+    const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress])
+    const feeData = await provider.getGasPrice()
+    const totalGas = gasFee * feeData
+    const totalGasEth = ethers.utils.formatEther(totalGas)
+    const totalGasToDollarsEth = (ethers.utils.formatEther(uniswapAmountsOut[1]))*100
+    const totalGasToDollars = totalGasEth*totalGasToDollarsEth
+    const arbOpp = gap - ethers.utils.parseEther(totalGasToDollars.toString())
+    console.log(arbOpp.toString(),gasFee,totalGasEth,totalGasToDollarsEth,totalGasToDollars)
+    //console.log(sushiswapAmountsOut,ethers.utils.parseEther(minAmount.toString()))
+    
     if(arbOpp > 0){
       console.log("Deploying Loan: For Arbitrage opportunity", arbOpp)
-      const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
-      await tx.wait()
+      //const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
+      //await tx.wait()
       console.log("Congratulations")
   }
 }
