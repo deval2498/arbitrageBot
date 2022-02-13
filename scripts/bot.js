@@ -33,9 +33,12 @@ async function main() {
   const uniswapPair = await uniswapfactory.getPair(daiAddress,wethAddress)
   const sushiswapPair = await sushiswapfactory.getPair(daiAddress,wethAddress)
   console.log('\n',uniswapPair,'\n',sushiswapPair)
-  const amountIn = ethers.utils.parseEther('0.01')
+  const amountIn = ethers.utils.parseEther('1')
+  const oneEth = ethers.utils.parseEther('1')
   const uniswapAmountsOut = await uniswaprouter.getAmountsOut(amountIn,[wethAddress,daiAddress])
+  const for1ETHUni = await uniswaprouter.getAmountsOut(oneEth,[wethAddress,daiAddress])
   const sushiswapAmountsOut = await sushiswaprouter.getAmountsOut(amountIn, [wethAddress,daiAddress])
+  const for1ETHSushi = await sushiswaprouter.getAmountsOut(oneEth, [wethAddress,daiAddress])
   const exc1 = uniswapRouterAddress
   
   const exc2 = sushiswapRouterAddress
@@ -54,18 +57,19 @@ async function main() {
     const gap = pUniswap - pSushiswap
     console.log("Gap:",gap)
     const minAmount = ethers.utils.formatEther(uniswapAmountsOut[1])
-    const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
-    const feeData = await provider.getGasPrice()
-    const totalGas = gasFee * feeData
-    const totalGasEth = ethers.utils.formatEther(totalGas)
-    const totalGasToDollarsEth = (ethers.utils.formatEther(uniswapAmountsOut[1]))*100
-    const totalGasToDollars = totalGasEth*totalGasToDollarsEth
+    //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
+    //const feeData = await provider.getGasPrice()
+    //const totalGas = gasFee * feeData
+    const totalGasEth = 0.000972557502 //ethers.utils.formatEther(totalGas)
+    const ethToDollars = (ethers.utils.formatEther(for1ETHUni[1]))
+    const totalGasToDollars = totalGasEth*ethToDollars
     const arbOpp = gap - ethers.utils.parseEther(totalGasToDollars.toString())
     console.log("Arbitrage opportunity of:",ethers.utils.formatEther(arbOpp.toString()),"$","\nTransactions cost worth:",totalGasToDollars,"$")
     if(arbOpp > 0){
       console.log("Deploying Loan: For Arbitrage opportunity", arbOpp)
-      //const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
-      //await tx.wait()
+      const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
+      await tx.wait()
+      console.log(tx)
       console.log("Congratulations")
   }
 }
@@ -75,19 +79,20 @@ async function main() {
     const _exc2 = exc1
     const gap = pSushiswap - pUniswap
     console.log("Gap:",gap)
-    const minAmount = ethers.utils.formatEther(sushiswapAmountsOut[1])
-    const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
-    const feeData = await provider.getGasPrice()
-    const totalGas = gasFee * feeData
-    const totalGasEth = ethers.utils.formatEther(totalGas)
-    const totalGasToDollarsEth = (ethers.utils.formatEther(sushiswapAmountsOut[1]))*100
-    const totalGasToDollars = totalGasEth*totalGasToDollarsEth
+    const minAmount = ethers.utils.formatEther(for1ETHSushi[1])
+    //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
+    //const feeData = await provider.getGasPrice()
+    //const totalGas = gasFee * feeData
+    const totalGasEth = 0.000972557502 //ethers.utils.formatEther(totalGas)
+    const ethToDollars = (ethers.utils.formatEther(sushiswapAmountsOut[1]))
+    const totalGasToDollars = totalGasEth*ethToDollars
     const arbOpp = gap - ethers.utils.parseEther(totalGasToDollars.toString())
     console.log("Arbitrage opportunity of:",ethers.utils.formatEther(arbOpp.toString()),"$","\nTransactions cost worth:",totalGasToDollars,"$")
     if(arbOpp > 0){
       console.log("Deploying Loan: For Arbitrage opportunity", arbOpp)
-      //const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
-      //await tx.wait()
+      const tx = await testDyDxContract.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), [wethAddress,daiAddress], amountIn.toString(), [daiAddress,wethAddress],{gasLimit: 30000000})
+      await tx.wait()
+      console.log(tx)
       console.log("Congratulations")
   }
 }
