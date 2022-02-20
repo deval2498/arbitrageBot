@@ -15,6 +15,7 @@ const wethAddress = '0xd0a1e359811322d97991e03f863a0c30c2cf029c'
 const contractAddress = '0xD72e5A75AD5868BCc76150948a1eEfd44a835315'
 const path1 = [wethAddress,daiAddress]
 const path2 = [daiAddress,wethAddress]
+
 async function main() {
   const provider = new ethers.getDefaultProvider('https://kovan.infura.io/v3/395015b6899447c8803a6977d5b3d543')
   const signer = new ethers.Wallet('e1c0812ab2cb8929e8cf2d58cc5d35c3f8dc91f90cb33713ce79791d91175164',provider)
@@ -33,10 +34,12 @@ async function main() {
   const uniswapPair = await uniswapfactory.getPair(daiAddress,wethAddress)
   const sushiswapPair = await sushiswapfactory.getPair(daiAddress,wethAddress)
   console.log('\n',uniswapPair,'\n',sushiswapPair)
-  const amountIn = ethers.utils.parseEther('1')
+  const amountIn = ethers.utils.parseEther('0.01')
   const oneEth = ethers.utils.parseEther('1')
   const uniswapAmountsOut = await uniswaprouter.getAmountsOut(amountIn,[wethAddress,daiAddress])
   const for1ETHUni = await uniswaprouter.getAmountsOut(oneEth,[wethAddress,daiAddress])
+  const reverseSwapUni = await uniswaprouter.getAmountsIn(amountIn,path2)
+  const reverseSwapSushi = await uniswaprouter.getAmountsIn(amountIn,path2)
   const sushiswapAmountsOut = await sushiswaprouter.getAmountsOut(amountIn, [wethAddress,daiAddress])
   const for1ETHSushi = await sushiswaprouter.getAmountsOut(oneEth, [wethAddress,daiAddress])
   const exc1 = uniswapRouterAddress
@@ -54,7 +57,8 @@ async function main() {
     console.log('using uniswap first:')
     const _exc1 = exc1
     const _exc2 = exc2
-    const gap = pUniswap - pSushiswap
+    console.log("reverse swap:",reverseSwapSushi)
+    const gap = pUniswap - pSushiswap - reverseSwapSushi[0]
     console.log("Gap:",gap)
     const minAmount = ethers.utils.formatEther(uniswapAmountsOut[1])
     //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
@@ -72,12 +76,15 @@ async function main() {
       console.log(tx)
       console.log("Congratulations")
   }
+  else{
+    console.log("Flash Loan not deployed, try again later!")
+  }
 }
   else{
     console.log('using sushiswap first:')
     const _exc1 = exc2
     const _exc2 = exc1
-    const gap = pSushiswap - pUniswap
+    const gap = pUniswap - pSushiswap - reverseSwapUni[0]
     console.log("Gap:",gap)
     const minAmount = ethers.utils.formatEther(for1ETHSushi[1])
     //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
@@ -94,6 +101,9 @@ async function main() {
       await tx.wait()
       console.log(tx)
       console.log("Congratulations")
+  }
+  else{
+    console.log("Flash Loan not deployed, try again later!")
   }
 }
 }
