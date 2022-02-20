@@ -62,12 +62,9 @@ async function main() {
     const _exc2 = exc2
     const reverseGap = pUniswap - reverseSwapSushi[0]
     console.log(reverseGap)
-    if(reverseGap < 0){
-      gap = pUniswap - pSushiswap + pUniswap - reverseSwapSushi[0]
-    }
-    else{
-      gap = pUniswap - pSushiswap
-    }
+    
+      gap = pUniswap - reverseSwapSushi[0]
+    
     console.log("Gap:",gap.toString())
     const minAmount = ethers.utils.formatEther(uniswapAmountsOut[1])
     //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
@@ -96,12 +93,9 @@ async function main() {
     const _exc2 = exc1
     const reverseGap = pSushiswap - reverseSwapUni[0]
     console.log(reverseGap)
-    if(reverseGap < 0){
-      gap = pSushiswap - pUniswap + pSushiswap - reverseSwapUni[0]
-    }
-    else{
-      gap = pSushiswap - pUniswap
-    }
+  
+      gap = pSushiswap - reverseSwapUni[0]
+    
     console.log("Gap:",gap)
     const minAmount = ethers.utils.formatEther(for1ETHSushi[1])
     //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
