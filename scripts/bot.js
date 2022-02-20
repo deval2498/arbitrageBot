@@ -39,7 +39,7 @@ async function main() {
   const uniswapAmountsOut = await uniswaprouter.getAmountsOut(amountIn,[wethAddress,daiAddress])
   const for1ETHUni = await uniswaprouter.getAmountsOut(oneEth,[wethAddress,daiAddress])
   const reverseSwapUni = await uniswaprouter.getAmountsIn(amountIn,path2)
-  const reverseSwapSushi = await uniswaprouter.getAmountsIn(amountIn,path2)
+  const reverseSwapSushi = await sushiswaprouter.getAmountsIn(amountIn,path2)
   const sushiswapAmountsOut = await sushiswaprouter.getAmountsOut(amountIn, [wethAddress,daiAddress])
   const for1ETHSushi = await sushiswaprouter.getAmountsOut(oneEth, [wethAddress,daiAddress])
   const exc1 = uniswapRouterAddress
@@ -51,15 +51,24 @@ async function main() {
     '\n =========== \n On Uniswap \n Amount of Dai for', ethers.utils.formatEther(amountIn),' WETH:',ethers.utils.formatEther(uniswapAmountsOut[1]),
     '\n =========== \n On Sushiswap \n Amount of Dai for', ethers.utils.formatEther(amountIn) ,'WETH:', ethers.utils.formatEther(sushiswapAmountsOut[1])
   )
+  console.log("Reverse swap on uniswap:",ethers.utils.formatEther(reverseSwapUni[0]))
+  console.log("Reverse swap on Sushiswap:",ethers.utils.formatEther(reverseSwapSushi[0]))
   const balance = await provider.getBalance(signer.address)
   console.log(ethers.utils.formatEther(balance))
   if(pUniswap > pSushiswap){
     console.log('using uniswap first:')
+    let gap
     const _exc1 = exc1
     const _exc2 = exc2
-    console.log("reverse swap:",reverseSwapSushi)
-    const gap = pUniswap - pSushiswap - reverseSwapSushi[0]
-    console.log("Gap:",gap)
+    const reverseGap = pUniswap - reverseSwapSushi[0]
+    console.log(reverseGap)
+    if(reverseGap < 0){
+      gap = pUniswap - pSushiswap + pUniswap - reverseSwapSushi[0]
+    }
+    else{
+      gap = pUniswap - pSushiswap
+    }
+    console.log("Gap:",gap.toString())
     const minAmount = ethers.utils.formatEther(uniswapAmountsOut[1])
     //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
     //const feeData = await provider.getGasPrice()
@@ -82,9 +91,17 @@ async function main() {
 }
   else{
     console.log('using sushiswap first:')
+    let gap
     const _exc1 = exc2
     const _exc2 = exc1
-    const gap = pUniswap - pSushiswap - reverseSwapUni[0]
+    const reverseGap = pSushiswap - reverseSwapUni[0]
+    console.log(reverseGap)
+    if(reverseGap < 0){
+      gap = pSushiswap - pUniswap + pSushiswap - reverseSwapUni[0]
+    }
+    else{
+      gap = pSushiswap - pUniswap
+    }
     console.log("Gap:",gap)
     const minAmount = ethers.utils.formatEther(for1ETHSushi[1])
     //const gasFee = await testDyDxContract.estimateGas.initiateFlashLoan(wethAddress, amountIn, _exc1, _exc2, ethers.utils.parseEther(minAmount.toString()), path1, amountIn.toString(), path2)
